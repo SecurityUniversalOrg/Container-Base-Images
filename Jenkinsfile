@@ -21,14 +21,13 @@ pipeline {
         ANCHORE_URL = "${globalVars.ANCHORE_URL}"
         VULNMANAGER_URL = "${globalVars.VULNMANAGER_URL}"
         PROJECT_NAME = "Container-Base-Images"
+        K8_NAMESPACE = "${params.SERVICE_NAME}"
     }
 
     parameters {
         string (defaultValue: "src", description: 'The directory for the source code.  (Multiple can be comma separated)', name: 'SOURCE_DIR')
         string (defaultValue: "ubuntu_22_base", description: 'The base image to build.', name: 'SERVICE_NAME')
     }
-
-    def K8_NAMESPACE = ${SERVICE_NAME}
 
     // In this example, all is built and run from the master
     agent any
