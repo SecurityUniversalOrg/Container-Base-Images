@@ -28,6 +28,8 @@ pipeline {
         string (defaultValue: "ubuntu_22_base", description: 'The base image to build.', name: 'SERVICE_NAME')
     }
 
+    def K8_NAMESPACE = ${SERVICE_NAME}
+
     // In this example, all is built and run from the master
     agent any
 
