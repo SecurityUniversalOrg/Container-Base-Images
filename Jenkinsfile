@@ -57,5 +57,11 @@ pipeline {
             }
         }
 
+        stage('Push to Registry') {
+            steps {
+                pushDocker("${SERVICE_NAME}")
+            }
+        }
+
     }
 }
