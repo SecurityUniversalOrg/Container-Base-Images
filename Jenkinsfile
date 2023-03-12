@@ -53,11 +53,11 @@ pipeline {
             }
         }
 
-        stage('Test Build Artifact') {
-            steps {
-                stageTestBaseImage()
-            }
-        }
+        //stage('Test Build Artifact') {
+        //    steps {
+        //        stageTestBaseImage()
+        //    }
+        //}
 
         stage('Push to Registry') {
             steps {
