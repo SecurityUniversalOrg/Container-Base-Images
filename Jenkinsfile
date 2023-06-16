@@ -55,7 +55,7 @@ pipeline {
 
         stage('Push to Registry') {
             steps {
-                jslPushDocker("${SERVICE_NAME}")
+                jslPushDocker("${SERVICE_NAME}", "${SOURCE_DIR}/${SERVICE_NAME}")
             }
         }
 
