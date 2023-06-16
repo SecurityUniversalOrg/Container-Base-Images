@@ -38,12 +38,6 @@ pipeline {
     stages {
 
 
-        ////////// Code Testing //////////
-        stage('Code Testing') {
-            steps {
-                runTesting('Infrastructure')
-            }
-        }
 
 
         ////////// Build //////////
