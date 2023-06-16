@@ -43,7 +43,7 @@ pipeline {
         ////////// Build //////////
         stage('Build Service') {
             steps {
-                jslBuildDocker(env.K8_NAMESPACE)
+                jslBuildDocker("${SERVICE_NAME}", "${SOURCE_DIR}/${SERVICE_NAME}")
             }
         }
 
@@ -55,7 +55,7 @@ pipeline {
 
         stage('Push to Registry') {
             steps {
-                jslPushDocker("${SERVICE_NAME}", "${SOURCE_DIR}/${SERVICE_NAME}")
+                jslPushDocker("${SERVICE_NAME}")
             }
         }
 
