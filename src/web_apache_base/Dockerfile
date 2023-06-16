@@ -1,4 +1,4 @@
-FROM bkaiserdevops/ubuntu_22_base:1
+FROM securityuniversal/ubuntu_22_base:1
 
 WORKDIR /var/www/html
 

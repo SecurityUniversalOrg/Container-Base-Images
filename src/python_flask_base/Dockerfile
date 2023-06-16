@@ -1,4 +1,4 @@
-FROM bkaiserdevops/web_apache_base:1
+FROM securityuniversal/web_apache_base:1
 
 
 RUN apt-get install -y \
