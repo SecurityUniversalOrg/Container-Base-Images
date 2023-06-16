@@ -16,7 +16,7 @@ pipeline {
         RELEASE_NUMBER = "${globalVars.RELEASE_NUMBER}"
         DOCKER_REG = "securityuniversal"
         DOCKER_TAG = "${globalVars.DOCKER_TAG}"
-        IMG_PULL_SECRET = "${globalVars.IMG_PULL_SECRET}"
+        IMG_PULL_SECRET = "dockerhub-auth-su"
         GIT_CREDS_ID = "${globalVars.GIT_CREDS_ID}"
         ANCHORE_URL = "${globalVars.ANCHORE_URL}"
         VULNMANAGER_URL = "${globalVars.VULNMANAGER_URL}"
