@@ -1,4 +1,4 @@
-@Library('pipeline-library')_
+@Library('security-pipeline-library')_
 
 
 pipeline {
@@ -43,7 +43,7 @@ pipeline {
         ////////// Build //////////
         stage('Build Service') {
             steps {
-                stageBuildBaseImage()
+                jslBuildDocker(env.K8_NAMESPACE)
             }
         }
 
@@ -55,7 +55,7 @@ pipeline {
 
         stage('Push to Registry') {
             steps {
-                pushDocker("${SERVICE_NAME}")
+                jslPushDocker("${SERVICE_NAME}")
             }
         }
 
