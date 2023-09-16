@@ -55,20 +55,15 @@ pipeline {
         //    }
         //}
 
-        stage('Push to Registry') {
+        stage('Docker Container Scanning') {
             steps {
-                jslPushDocker("${SERVICE_NAME}")
+                jslContainerSecurityScanning("${SERVICE_NAME}", 'latest', 'securityuniversal')
             }
         }
 
-        stage('Docker Container Scanning') {
-            when {
-                 expression {
-                    env.BRANCH_NAME ==~ /^release\/.*\/.*/
-                 }
-            }
+        stage('Push to Registry') {
             steps {
-                jslContainerSecurityScanning("${SERVICE_NAME}", 'latest', 'securityuniversal')
+                jslPushDocker("${SERVICE_NAME}")
             }
         }
 
