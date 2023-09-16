@@ -22,6 +22,8 @@ pipeline {
         VULNMANAGER_URL = "${globalVars.VULNMANAGER_URL}"
         PROJECT_NAME = "Container-Base-Images"
         K8_NAMESPACE = "${params.SERVICE_NAME}"
+        // App-specific settings
+        appName = "COMMON--${env.GIT_URL.split('/')[-1].split('\\.')[0]}"
     }
 
     parameters {
@@ -56,6 +58,17 @@ pipeline {
         stage('Push to Registry') {
             steps {
                 jslPushDocker("${SERVICE_NAME}")
+            }
+        }
+
+        stage('Docker Container Scanning') {
+            when {
+                 expression {
+                    env.BRANCH_NAME ==~ /^release\/.*\/.*/
+                 }
+            }
+            steps {
+                jslContainerSecurityScanning("${SERVICE_NAME}", 'latest', 'securityuniversal')
             }
         }
 

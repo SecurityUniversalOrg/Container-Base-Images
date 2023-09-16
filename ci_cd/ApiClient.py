@@ -1,10 +1,8 @@
 import requests
 
 
+OAUTH_SCOPES = ['read:vulnerabilities', 'write:vulnerabilities']
 
-OAUTH_SCOPES = ['read:dockerimages', 'write:dockerimages', 'write:vulnerabilityscans', 'write:vulnerabilities',
-                'write:pipelinejobs', 'write:appcodecomposition', 'write:releaseversions', 'write:servicetickets',
-                'read:businessapplications']
 
 class ApiClient(object):
     def __init__(self, client_id, client_secret, vulnmanagerurl):
