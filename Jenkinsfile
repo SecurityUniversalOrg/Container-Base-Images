@@ -91,6 +91,12 @@ pipeline {
         stage('Send report') {
             steps {
                 script {
+                    def reportProcessor = new PipelineReportProcessor(this)
+                    reportProcessor.processReport('pipeline_stage_report.json')
+
+                    def reportFile = 'pipeline_stage_report.json'
+                    archiveArtifacts artifacts: reportFile, allowEmptyArchive: true
+
                     jslSendMicrosoftTeamsMessage()
                     jslSendSecurityReportEmail()
                 }
