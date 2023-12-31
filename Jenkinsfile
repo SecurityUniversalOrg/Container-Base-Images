@@ -3,38 +3,17 @@
 
 pipeline {
 
+    agent any
+
     options {
         // Build auto timeout
         timeout(time: 600, unit: 'MINUTES')
-    }
-
-    // Some global default variables
-    environment {
-        GIT_BRANCH = "${globalVars.GIT_BRANCH}"
-        EMAIL_FROM = "${globalVars.EMAIL_FROM}"
-        SUPPORT_EMAIL = "${globalVars.SUPPORT_EMAIL}"
-        RELEASE_NUMBER = "${globalVars.RELEASE_NUMBER}"
-        DOCKER_REG = "securityuniversal"
-        DOCKER_TAG = "${globalVars.DOCKER_TAG}"
-        IMG_PULL_SECRET = "dockerhub-auth-su"
-        GIT_CREDS_ID = "${globalVars.GIT_CREDS_ID}"
-        ANCHORE_URL = "${globalVars.ANCHORE_URL}"
-        VULNMANAGER_URL = "${globalVars.VULNMANAGER_URL}"
-        PROJECT_NAME = "Container-Base-Images"
-        K8_NAMESPACE = "${params.SERVICE_NAME}"
-        // App-specific settings
-        appName = "COMMON--${env.GIT_URL.split('/')[-1].split('\\.')[0]}"
     }
 
     parameters {
         string (defaultValue: "src", description: 'The directory for the source code.  (Multiple can be comma separated)', name: 'SOURCE_DIR')
         string (defaultValue: "ubuntu_22_base", description: 'The base image to build.', name: 'SERVICE_NAME')
     }
-
-    // In this example, all is built and run from the master
-    agent any
-
-
 
     // Pipeline stages
     stages {
@@ -43,6 +22,13 @@ pipeline {
             steps {
                 script {
 
+                    def config = jslReadYamlConfig()
+                    env.appName = config.global.appName
+
+                    // Set the global branch list
+                    env.GLOBAL_BRANCH_LIST = config.global.defaultBranches.join(',')
+                    env.CURRENT_STAGE_BRANCH_LIST = ""
+
                     jslStageWrapper.initReport()
 
                 }
@@ -50,8 +36,78 @@ pipeline {
         }
 
 
+        stage('Prep Job') {
+            when {
+                expression {
+                    def config = jslReadYamlConfig('prepJob')
+                    env.CURRENT_STAGE_BRANCH_LIST = env.GLOBAL_BRANCH_LIST
+                    if (config.branches) {
+                        env.CURRENT_STAGE_BRANCH_LIST = config.branches.join(',')
+                    }
+                    def branchType = env.BRANCH_NAME.tokenize('/')[0]
+                    env.CURRENT_STAGE_BRANCH_LIST.tokenize(',').contains(branchType) && config.enabled
+                }
+            }
+            steps {
+                jslStageWrapper('Prep Job') {
+                    script {
+                        jslCountLinesOfCode()
+                    }
+                }
+            }
+        }
+
+        stage('Secret Scanning') {
+            when {
+                 expression {
+                    def config = jslReadYamlConfig('secretScanning')
+                    env.CURRENT_STAGE_BRANCH_LIST = env.GLOBAL_BRANCH_LIST
+                    if (config.branches) {
+                        env.CURRENT_STAGE_BRANCH_LIST = config.branches.join(',')
+                    }
+                    def branchType = env.BRANCH_NAME.tokenize('/')[0]
+                    env.CURRENT_STAGE_BRANCH_LIST.tokenize(',').contains(branchType) && config.enabled
+                 }
+            }
+            steps {
+                jslStageWrapper('Secret Scanning') {
+                    jslSecretScanning()
+                }
+            }
+        }
+
+        stage('Infrastructure-as-Code Security Testing') {
+            when {
+                 expression {
+                    def config = jslReadYamlConfig('iac')
+                    env.CURRENT_STAGE_BRANCH_LIST = env.GLOBAL_BRANCH_LIST
+                    if (config.branches) {
+                        env.CURRENT_STAGE_BRANCH_LIST = config.branches.join(',')
+                    }
+                    def branchType = env.BRANCH_NAME.tokenize('/')[0]
+                    env.CURRENT_STAGE_BRANCH_LIST.tokenize(',').contains(branchType) && config.enabled
+                 }
+            }
+            steps {
+                jslStageWrapper('Infrastructure-as-Code Security Testing') {
+                    jslInfrastructureAsCodeAnalysis()
+                }
+            }
+        }
+
         ////////// Build //////////
-        stage('Build Service') {
+        stage('Build Docker Service') {
+            when {
+                expression {
+                    def config = jslReadYamlConfig('buildDocker')
+                    env.CURRENT_STAGE_BRANCH_LIST = env.GLOBAL_BRANCH_LIST
+                    if (config.branches) {
+                        env.CURRENT_STAGE_BRANCH_LIST = config.branches.join(',')
+                    }
+                    def branchType = env.BRANCH_NAME.tokenize('/')[0]
+                    env.CURRENT_STAGE_BRANCH_LIST.tokenize(',').contains(branchType) && config.enabled
+                }
+            }
             steps {
                 jslStageWrapper('Build Docker Service') {
                     script {
@@ -64,19 +120,59 @@ pipeline {
             }
         }
 
-        //stage('Test Build Artifact') {
-        //    steps {
-        //        stageTestBaseImage()
-        //    }
-        //}
-
         stage('Docker Container Scanning') {
+            when {
+                 expression {
+                    def config = jslReadYamlConfig('containerScan')
+                    env.CURRENT_STAGE_BRANCH_LIST = env.GLOBAL_BRANCH_LIST
+                    if (config.branches) {
+                        env.CURRENT_STAGE_BRANCH_LIST = config.branches.join(',')
+                    }
+                    def branchType = env.BRANCH_NAME.tokenize('/')[0]
+                    env.CURRENT_STAGE_BRANCH_LIST.tokenize(',').contains(branchType) && config.enabled
+                 }
+            }
             steps {
-                jslContainerSecurityScanning("${SERVICE_NAME}", 'latest', 'securityuniversal')
+                jslStageWrapper('Docker Container Scanning') {
+                    script {
+                        jslContainerSecurityScanning("${SERVICE_NAME}", 'latest', 'securityuniversal')
+                    }
+                }
+            }
+        }
+
+        ////////// Quality Gate //////////
+        stage("Quality Gate - Security") {
+            when {
+                 expression {
+                    def config = jslReadYamlConfig('securityQualityGate')
+                    env.CURRENT_STAGE_BRANCH_LIST = env.GLOBAL_BRANCH_LIST
+                    if (config.branches) {
+                        env.CURRENT_STAGE_BRANCH_LIST = config.branches.join(',')
+                    }
+                    def branchType = env.BRANCH_NAME.tokenize('/')[0]
+                    env.CURRENT_STAGE_BRANCH_LIST.tokenize(',').contains(branchType) && config.enabled
+                 }
+            }
+            steps {
+                jslStageWrapper('Quality Gate - Security') {
+                    jslSecurityQualityGate()
+                }
             }
         }
 
         stage('Push to Registry') {
+            when {
+                 expression {
+                    def config = jslReadYamlConfig('pushToRegistry')
+                    env.CURRENT_STAGE_BRANCH_LIST = env.GLOBAL_BRANCH_LIST
+                    if (config.branches) {
+                        env.CURRENT_STAGE_BRANCH_LIST = config.branches.join(',')
+                    }
+                    def branchType = env.BRANCH_NAME.tokenize('/')[0]
+                    env.CURRENT_STAGE_BRANCH_LIST.tokenize(',').contains(branchType) && config.enabled
+                 }
+            }
             steps {
                 jslStageWrapper('Push to Registry') {
                     script {
@@ -88,20 +184,12 @@ pipeline {
             }
         }
 
-        stage('Send report') {
-            steps {
-                script {
-                    def reportProcessor = new PipelineReportProcessor(this)
-                    reportProcessor.processReport('pipeline_stage_report.json')
-
-                    def reportFile = 'pipeline_stage_report.json'
-                    archiveArtifacts artifacts: reportFile, allowEmptyArchive: true
-
-                    jslSendMicrosoftTeamsMessage()
-                    jslSendSecurityReportEmail()
-                }
+    }
+    post {
+        always {
+            script {
+                jslPipelineReporter()
             }
         }
-
     }
 }
