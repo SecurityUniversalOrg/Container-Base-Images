@@ -45,7 +45,14 @@ pipeline {
         ////////// Build //////////
         stage('Build Service') {
             steps {
-                jslBuildDocker("${SERVICE_NAME}", "${SOURCE_DIR}/${SERVICE_NAME}")
+                jslStageWrapper('Build Docker Service') {
+                    script {
+                        jslBuildDocker([
+                            'serviceName': env.appName,
+                            'dockerfilePath': "${SOURCE_DIR}/${SERVICE_NAME}"
+                        ])
+                    }
+                }
             }
         }
 
