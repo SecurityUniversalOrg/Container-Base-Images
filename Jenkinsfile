@@ -39,7 +39,15 @@ pipeline {
     // Pipeline stages
     stages {
 
+        stage('Initialize Config') {
+            steps {
+                script {
 
+                    jslStageWrapper.initReport()
+
+                }
+            }
+        }
 
 
         ////////// Build //////////
