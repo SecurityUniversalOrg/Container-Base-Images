@@ -70,7 +70,13 @@ pipeline {
 
         stage('Push to Registry') {
             steps {
-                jslPushDocker("${SERVICE_NAME}")
+                jslStageWrapper('Push to Registry') {
+                    script {
+                        jslPushDocker([
+                            'serviceName': "${SERVICE_NAME}"
+                        ])
+                    }
+                }
             }
         }
 
