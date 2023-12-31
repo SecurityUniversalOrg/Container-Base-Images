@@ -135,7 +135,7 @@ pipeline {
             steps {
                 jslStageWrapper('Docker Container Scanning') {
                     script {
-                        jslContainerSecurityScanning("${SERVICE_NAME}", 'latest', 'securityuniversal', autoDiscover=false)
+                        jslContainerSecurityScanning("${SERVICE_NAME}", 'latest', 'securityuniversal', '', 'ci/cd', false)
                     }
                 }
             }
