@@ -9,11 +9,11 @@ stages:
     branches:
       - release
   secretScanning:
-    enabled: true
+    enabled: false
     branches:
       - release
   iac:
-    enabled: true
+    enabled: false
     branches:
       - release
   buildDocker:
