@@ -1,0 +1,42 @@
+global:
+  appName: 'COMMON--Container-Base-Images'
+  defaultBranches:
+    - release
+    - security
+stages:
+  prepJob:
+    enabled: true
+    branches:
+      - release
+  secretScanning:
+    enabled: true
+    branches:
+      - release
+  iac:
+    enabled: true
+    branches:
+      - release
+  buildDocker:
+    enabled: true
+    branches:
+      - release
+  containerScan:
+    enabled: true
+    branches:
+      - release
+    containerName: secusphere
+    containerTag: latest
+  securityQualityGate:
+    enabled: true
+    branches:
+      - release
+  pushToRegistry:
+    enabled: true
+    branches:
+      - release
+  post:
+    enabled: true
+    branches:
+      - release
+    recipientEmails: 'brian@jbfinegoods.com'
+    recipientTeamsChannels: 'SecAutomation-Testing-Teams-Webhook'
